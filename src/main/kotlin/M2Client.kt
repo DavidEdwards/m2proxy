@@ -166,7 +166,7 @@ class M2Client(private val ws: WebSocket, private val host: String, private val 
                 readBytes = input.read(buff)
                 if (readBytes > 0) {
                     val data = String(buff, 0, readBytes)
-                    print("Input length: "+data.length)
+                    println("Input length: "+data.length)
                     ws.send(data)
                 }
             } while (readBytes >= 0)
