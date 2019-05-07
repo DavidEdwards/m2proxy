@@ -1,3 +1,0 @@
-/home/david/repo/test2/src/main/kotlin/Main.kt
-/home/david/repo/test2/src/main/kotlin/TelnetClientExample.kt
-/home/david/repo/test2/src/main/kotlin/M2Client.kt

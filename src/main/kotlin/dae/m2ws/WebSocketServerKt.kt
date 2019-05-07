@@ -1,3 +1,5 @@
+package dae.m2ws
+
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
@@ -21,7 +23,7 @@ abstract class WebSocketServerKt(addr: InetSocketAddress): WebSocketServer(addr)
     }
 
     override fun onClose(conn: WebSocket?, code: Int, reason: String?, remote: Boolean) {
-        if(conn != null && code != null && reason != null && remote != null) {
+        if(conn != null && reason != null) {
             onCloseKt(conn, code, reason, remote)
         } else {
             println("onClose null $conn $code $reason $remote")
