@@ -1,4 +1,5 @@
 package dae.m2ws
+
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
@@ -16,40 +17,46 @@ import kotlin.coroutines.CoroutineContext
 
 fun main(args: Array<String>) = Main().main(args)
 
-class Main: CliktCommand(), CoroutineScope {
+class Main : CliktCommand(), CoroutineScope {
     private val job = SupervisorJob()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
-    val host: String by option(help="The host / IP of the Mud server").default("mudii.co.uk")
-    val port: Int by option(help="The port we should listen at for WebSocket connections").int().default(8000)
+    val host: String by option("-i", "--ip", help = "The host / IP of the Mud server").default("mudii.co.uk")
+    val port: Int by option(
+        "-p",
+        "--port",
+        help = "The port we should listen at for WebSocket connections"
+    ).int().default(8000)
+    val mudport: Int by option("-P", help = "The port we should connect to for Mud").int().default(23)
 //    val name: String by option(help="The person to greet").prompt("Your name")
 
     private lateinit var webSocketServer: WebSocketServer
 
     override fun run() {
-        println("Start at host $host")
+        println("Listen at $port")
+        println("Connect to $host:$mudport")
 
-        webSocketServer = object: WebSocketServerKt(InetSocketAddress(port)) {
+        webSocketServer = object : WebSocketServerKt(InetSocketAddress(port)) {
             override fun onOpenKt(conn: WebSocket, handshake: ClientHandshake) {
-                println("onOpen")
+                println("onOpen ${conn.remoteSocketAddress.address.hostAddress}")
 
-                val client = M2Client(conn, host)
+                val client = M2Client(conn, host, mudport)
                 conn.setAttachment(client)
                 client.connect()
             }
 
             override fun onCloseKt(conn: WebSocket, code: Int, reason: String, remote: Boolean) {
-                println("onClose: $code $reason $remote")
+                println("onClose: code=$code reason=$reason remote=$remote ip=${conn.remoteSocketAddress.address.hostAddress}")
                 conn.getAttachment<M2Client>()?.let { client ->
                     client.stop()
                 }
             }
 
             override fun onMessageKt(conn: WebSocket, message: String) {
-                println("onMessage: $message")
+//                println("onMessage: $message")
                 conn.getAttachment<M2Client>()?.let { client ->
-                    client.sendMessage(message+"\n")
+                    client.sendMessage(message + "\n")
                 }
             }
 
@@ -58,7 +65,7 @@ class Main: CliktCommand(), CoroutineScope {
             }
 
             override fun onErrorKt(conn: WebSocket, ex: Exception) {
-                System.err.println("onError: $ex")
+                System.err.println("onError: $ex ip=${conn.remoteSocketAddress.address.hostAddress}")
             }
 
         }
